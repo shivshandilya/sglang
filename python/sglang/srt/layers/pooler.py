@@ -31,16 +31,17 @@ class Pooler(nn.Module):
         normalize: Whether to normalize the pooled data.
     """
 
-    def __init__(self, pooling_type: PoolingType, normalize: bool):
+    def __init__(self, pooling_type: PoolingType, normalize: bool, offset: int = 1):
         super().__init__()
         self.pooling_type = pooling_type
         self.normalize = normalize
+        self.offset = offset
 
     def forward(
         self, hidden_states: torch.Tensor, forward_batch: ForwardBatch
     ) -> EmbeddingPoolerOutput:
         if self.pooling_type == PoolingType.LAST:
-            last_token_indices = torch.cumsum(forward_batch.extend_seq_lens, dim=0) - 1
+            last_token_indices = torch.cumsum(forward_batch.extend_seq_lens, dim=0) - self.offset
             pooled_data = hidden_states[last_token_indices]
         elif self.pooling_type == PoolingType.CLS:
             prompt_lens = forward_batch.extend_seq_lens
